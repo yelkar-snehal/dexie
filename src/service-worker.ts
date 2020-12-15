@@ -12,9 +12,35 @@ import { clientsClaim } from 'workbox-core';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
-import { StaleWhileRevalidate } from 'workbox-strategies';
+import { NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies';
+import { BackgroundSyncPlugin, Queue } from 'workbox-background-sync';
+
 
 declare const self: ServiceWorkerGlobalScope;
+
+const bgSyncPlugin = new BackgroundSyncPlugin('test', {
+  maxRetentionTime: 24 * 60 // Retry for max of 24 Hours (specified in minutes)
+});
+
+registerRoute(
+  /\/api\/.*\/*.json/,
+  new NetworkOnly({
+    plugins: [bgSyncPlugin]
+  }),
+  'POST'
+);
+
+// const queue = new Queue('test');
+//
+// self.addEventListener('fetch', (event) => {
+//   // Clone the request to ensure it's safe to read when
+//   // adding to the Queue.
+//   const promiseChain = fetch(event.request.clone()).catch((err) => {
+//     return queue.pushRequest({request: event.request});
+//   });
+//
+//   event.waitUntil(promiseChain);
+// });
 
 clientsClaim();
 
@@ -72,9 +98,16 @@ registerRoute(
 // This allows the web app to trigger skipWaiting via
 // registration.waiting.postMessage({type: 'SKIP_WAITING'})
 self.addEventListener('message', (event) => {
+  console.log('message')
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
 });
 
 // Any other custom service worker logic can go here.
+self.addEventListener('sync', (event: any) => {
+  console.log('event', event)
+  if (event.tag === 'test') {
+    console.log('test event fired', event)
+  }
+});

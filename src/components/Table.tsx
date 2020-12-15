@@ -32,6 +32,16 @@ export const CustomTable = () => {
       console.log('Your browser doesn\'t support a stable version of IndexedDB. Some features will not be available.')
     }
 
+    navigator.serviceWorker.ready.then((r) => {
+      if ('periodicSync' in r) {
+        console.log('supported', r)
+      }
+      if ('sync' in r) {
+        console.log('supported', r)
+      }
+
+    })
+
     // let zipcodes: IList[] = []
 
     db.table('quantities')
@@ -57,12 +67,29 @@ export const CustomTable = () => {
     //     const db = event.target.result;
     //   };
     // }
+
+    // Then later, request a one-off sync:
+    navigator.serviceWorker.ready.then(function (swRegistration) {
+      console.log('sw reg', swRegistration)
+      return swRegistration.sync.register('test')
+    }).catch(e => console.log(e))
+
   }, [])
 
   const handleOnChange = (productId: string, value: string, quantityIndex: number, type: string) => {
     const localData: IList[] = [...data]
     const item = localData.find(({ id }) => id === productId)
     if (item) {
+      navigator.serviceWorker.ready.then((registration: any) => {
+        return registration.active.postMessage('Hi service worker')
+      })
+
+      navigator.serviceWorker.ready.then(function (swRegistration) {
+        console.log('sw reg')
+        return swRegistration.sync.register('test')
+      }).catch(e => console.log(e))
+
+
       item.quantities[quantityIndex] = Number(value)
       setData([...localData])
       db.table('quantities')
