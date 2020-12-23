@@ -15,6 +15,11 @@
     "dexie": "^3.0.3",
     "faker": "^5.1.0",
     "localforage": "^1.9.0",
+    "lodash": "^4.17.20",
+    "mobx": "^6.0.4",
+    "mobx-react": "^7.0.5",
+    "mobx-react-lite": "^3.1.6",
+    "mobx-utils": "^6.0.3",
     "react": "^17.0.1",
     "react-app-rewire-workbox": "^2.0.1",
     "react-dom": "^17.0.1",
@@ -52,6 +57,7 @@
   },
   "devDependencies": {
     "@types/faker": "^5.1.4",
+    "@types/lodash": "^4.14.165",
     "react-app-rewired": "^2.1.6"
   }
 }

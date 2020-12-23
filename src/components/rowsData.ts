@@ -11,5 +11,6 @@ export const list = new Array(100).fill(true).map(() => ({
   productDescription: faker.commerce.productDescription(),
   color: faker.commerce.color(),
   id: faker.random.alphaNumeric(11),
-  quantities: faker.random.arrayElements([10, 20, 30, 40, 50, 60], 6)
+  quantities: faker.random.arrayElements([10, 20], 2),
+  isSynced: false
 }));
