@@ -23,9 +23,14 @@ export interface IList {
   color?: string
   id: string
   quantities: number[]
-  isSynced: boolean
+  isSynced: number // treated as number since boolean indexing isn't possible w/ indexed db
 }
 
+/**
+ * if needed for local data and server data comparison
+ * @param arr1
+ * @param arr2
+ */
 const isArrayEqual = (arr1: IList[], arr2: IList[]) => {
   return _(arr1).differenceWith(arr2, _.isEqual).isEmpty()
 }
@@ -48,15 +53,21 @@ export const CustomTable = () => {
         }
       })
 
+      // populate store either from local indexed db or server data
       db.table('quantities')
         .toArray()
         .then(quantities => {
           const start = performance.now()
-          if (( !quantities?.length ) || ( quantities?.length && !isArrayEqual(quantities, list) )) {
+          if (quantities?.length) {
+            console.log('using local data for store')
+            updateData([...quantities])
+          }
+          if (!quantities?.length) {
+            console.log('using server data for store')
             db.table('quantities')
               .bulkAdd([...list])
+              .then(bulk => updateData([...list]))
           }
-          updateData([...list])
           const finish = performance.now()
           console.log(`Execution time: ${finish - start} milliseconds`)
         })
@@ -79,6 +90,20 @@ export const CustomTable = () => {
 
     }, [])
 
+    // timer to sync data periodically with server
+    // printing the not synced products for now
+    // temp interval of 30s
+    useEffect(() => {
+      const timer = setInterval(async () => queryDatabase().then((r) => console.log(r)), 30000)
+      return () => {
+        clearTimeout(timer)
+      }
+    })
+
+    const queryDatabase = async () => {
+      return db.table('quantities').where({ isSynced: 0 }).toArray()
+    }
+
     const handleOnChange = (productId: string, value: string, quantityIndex: number, type: string) => {
       const localData: IList[] = [...data]
       const item = localData.find(({ id }) => id === productId)
@@ -94,9 +119,10 @@ export const CustomTable = () => {
 
 
         item.quantities[quantityIndex] = Number(value)
+        item.isSynced = 0
         updateData([...localData])
         db.table('quantities')
-          .update(productId, { quantities: item.quantities })
+          .update(productId, { quantities: item.quantities, isSynced: 0 })
       }
     }
     return (
@@ -112,15 +138,15 @@ export const CustomTable = () => {
                 {new Array(2).fill(true).map((_v, i) => <TableCell key={i}>{`Quantity ${i + 1}`}</TableCell>)}
               </TableRow>
             </TableHead>
-            <TableRow key={`head`}>
-              <TableCell component="th" scope="row" />
-              <TableCell />
-              <TableCell />
-              <TableCell />
-              <TableCell>Total: {getTotalQuantity(0)}</TableCell>
-              <TableCell>Total: {getTotalQuantity(1)}</TableCell>
-            </TableRow>
             <TableBody>
+              <TableRow key={`head`}>
+                <TableCell component="th" scope="row" />
+                <TableCell />
+                <TableCell />
+                <TableCell />
+                <TableCell>Total: {getTotalQuantity(0)}</TableCell>
+                <TableCell>Total: {getTotalQuantity(1)}</TableCell>
+              </TableRow>
               {data.map(({ productName, color, id, quantities }, rowIndex) => (
                 <TableRow key={`${id}-${rowIndex}`}>
                   <TableCell component="th" scope="row">

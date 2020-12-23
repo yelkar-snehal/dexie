@@ -12,5 +12,5 @@ export const list = new Array(100).fill(true).map(() => ({
   color: faker.commerce.color(),
   id: faker.random.alphaNumeric(11),
   quantities: faker.random.arrayElements([10, 20], 2),
-  isSynced: false
+  isSynced: 1
 }));

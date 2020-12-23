@@ -23,13 +23,11 @@ export class TableStore {
 
   getTotalQuantity = computedFn((column: number) => {
     const { data } = this
-    // return data.reduce((accumulator:number, currentValue:number) => accumulator + currentValue)
     return data.map(d => d.quantities[column]).reduce((accumulator: number, colValue: number) => accumulator + colValue, 0)
   }).bind(this)
 
   getTotalValue = computedFn((row: number) => {
     const { data } = this
-    // return data.reduce((accumulator:number, currentValue:number) => accumulator + currentValue)
     return data[row].quantities.reduce((accumulator: number, rowValue: number) => accumulator + rowValue, 0)
   }).bind(this)
 }
