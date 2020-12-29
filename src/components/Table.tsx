@@ -43,15 +43,15 @@ export const CustomTable = () => {
     // const request: any = useRef(null)
 
     useEffect(() => {
-      if (!window.indexedDB) {
-        console.log('Your browser doesn\'t support a stable version of IndexedDB. Some features will not be available.')
-      }
-
-      navigator.serviceWorker.ready.then((r) => {
-        if ('periodicSync' in r) {
-          console.log('periodicSync supported')
-        }
-      })
+      // if (!window.indexedDB) {
+      //   console.log('Your browser doesn\'t support a stable version of IndexedDB. Some features will not be available.')
+      // }
+      //
+      // navigator.serviceWorker.ready.then((r) => {
+      //   if ('periodicSync' in r) {
+      //     console.log('periodicSync supported')
+      //   }
+      // })
 
       // populate store either from local indexed db or server data
       db.table('quantities')
@@ -91,26 +91,27 @@ export const CustomTable = () => {
     }, [])
 
     // timer to sync data periodically with server
-    // printing the not synced products for now
+    // printing the number of synced products for now
     // temp interval of 30s
     useEffect(() => {
-      const timer = setInterval(async () => queryDatabase().then((r) => console.log(r)), 30000)
+      const timer = setInterval(async () => queryDatabase().then((r) => console.log('Products synced: ', r)), 30000)
       return () => {
         clearTimeout(timer)
       }
     })
 
     const queryDatabase = async () => {
-      return db.table('quantities').where({ isSynced: 0 }).toArray()
+      // TODO: network call here
+      return db.table('quantities').where({ isSynced: 0 }).modify({ isSynced: 1 })
     }
 
     const handleOnChange = (productId: string, value: string, quantityIndex: number, type: string) => {
       const localData: IList[] = [...data]
       const item = localData.find(({ id }) => id === productId)
       if (item) {
-        navigator.serviceWorker.ready.then((registration: any) => {
-          return registration.active.postMessage('Hi service worker')
-        })
+        // navigator.serviceWorker.ready.then((registration: any) => {
+        //   return registration.active.postMessage('Hi service worker')
+        // })
 
         // navigator.serviceWorker.ready.then(function (swRegistration) {
         //   console.log('sw reg')
